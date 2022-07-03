@@ -1,35 +1,59 @@
 const Cards = require('../models/card');
+const NoteFoundError = require('../errors/NoteFoundError');
+const ValidationError = require('../errors/ValidationError');
 
-module.exports.postCard = (req, res) => {
+module.exports.postCard = (req, res, next) => {
   const owner = req.user._id;
   const {name, link} = req.body;
 
   Cards.create({name, link, owner})
-    .then(card => res.send({data: card}))
-    .catch(err => console.log('error', err));
+    .then((card) => res.status(201).send({ body: card }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Переданны некорректные данные'));
+      } else {
+        next(err);
+      }
+    });
 }
 
-module.exports.getCard = (req, res) => {
+module.exports.getCard = (req, res, next) => {
   Cards.find({})
-    .then(cards => res.send(cards))
-    .catch(err => console.log('error', err));
+    .then((cards) => res.status(200).send({ cards }))
+    .catch(next);
 }
 
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res, next) => {
   Cards.findByIdAndRemove(req.params.id)
-    .then(card => res.send(card))
-    .catch(err => console.log('error', err));
+    .then((card) => {
+      if (!card) {
+        throw new NoteFoundError('Карточка не найдена');
+      }
+      res.status(200).send({ message: 'Карточка удалена' });
+    })
+    .catch(next);
 }
 
 module.exports.likeCard = (req, res) => {
   Cards.findByIdAndUpdate(req.params.id, { $addToSet: { likes: req.user._id } }, { new: true })
-  .then(card => res.send(card))
-  .catch(err => console.log('error', err));
+  .orFail(() => {
+    throw new NoteFoundError('Карточка не найдена');
+  })
+  .then((card) => {
+    res.status(200).send(card);
+  })
+  .catch(next);
 }
 
 
 module.exports.dislikeCard = (req, res) => {
   Cards.findByIdAndUpdate(req.params.id, { $pull: { likes: req.user._id } }, { new: true })
-  .then(card => res.send(card))
-  .catch(err => console.log('error', err));
+  .then((card) => {
+    if (!card) {
+      throw new NoteFoundError('Карточка не найдена');
+    } else {
+      res.status(200).send(card);
+    }
+  })
+  .catch(next);
 }

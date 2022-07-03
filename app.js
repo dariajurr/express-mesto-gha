@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParse = require('body-parser');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
+const NoteFoundError = require('./errors/NoteFoundError');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -26,9 +27,17 @@ mongoose.connect('mongodb://localhost:27017/mestodb',
 
 app.use('/', userRouter);
 app.use('/', cardRouter);
+app.use((req, res, next) => {
+  next(new NoteFoundError('Страницы не существует'));
+});
+
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message = 'На сервере произошла ошибка'} = err;
+  res.status(statusCode).send({message});
+  next();
+});
 
 app.listen(PORT, () => {
-  // Если всё работает, консоль покажет, какой порт приложение слушает
   console.log(`App listening on port ${PORT}`)
 })
 
