@@ -9,21 +9,23 @@ const { PORT = 3000 } = process.env;
 const app = express();
 
 app.use(bodyParse.json());
-app.use(bodyParse.urlencoded({extended: true}));
+app.use(bodyParse.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
   req.user = {
-    _id: '62bdd267b6115e3adb1d3b78'
+    _id: '62bdd267b6115e3adb1d3b78',
   };
 
   next();
 });
 
-mongoose.connect('mongodb://localhost:27017/mestodb',
-  err => {
-      if(err) throw err;
-      console.log('connected to MongoDB')
-});
+mongoose.connect(
+  'mongodb://localhost:27017/mestodb',
+  (err) => {
+    if (err) throw err;
+    console.log('connected to MongoDB');
+  },
+);
 
 app.use('/', userRouter);
 app.use('/', cardRouter);
@@ -32,12 +34,11 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  const { statusCode = 500, message = 'На сервере произошла ошибка'} = err;
-  res.status(statusCode).send({message});
+  const { statusCode = 500, message = 'На сервере произошла ошибка' } = err;
+  res.status(statusCode).send({ message });
   next();
 });
 
 app.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}`)
-})
-
+  console.log(`App listening on port ${PORT}`);
+});
