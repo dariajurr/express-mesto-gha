@@ -1,6 +1,7 @@
 const Cards = require('../models/card');
-const NoteFoundError = require('../errors/NoteFoundError');
+const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
+const BadRequestError = require('../errors/BadRequestError');
 
 module.exports.postCard = (req, res, next) => {
   const owner = req.user._id;
@@ -27,32 +28,37 @@ module.exports.deleteCard = (req, res, next) => {
   Cards.findByIdAndRemove(req.params.id)
     .then((card) => {
       if (!card) {
-        throw new NoteFoundError('Карточка не найдена');
+        throw new NotFoundError('Карточка не найдена');
       }
       res.status(200).send({ message: 'Карточка удалена' });
     })
-    .catch(next);
+    .catch(err => {
+      next(new BadRequestError('Некорректный запрос'));
+    });
 }
 
-module.exports.likeCard = (req, res) => {
+module.exports.likeCard = (req, res, next) => {
   Cards.findByIdAndUpdate(req.params.id, { $addToSet: { likes: req.user._id } }, { new: true })
-  .orFail(() => {
-    throw new NoteFoundError('Карточка не найдена');
-  })
   .then((card) => {
+    if (!card) {
+      throw new NotFoundError('Карточка не найдена');
+    }
     res.status(200).send(card);
   })
-  .catch(next);
+  .catch(err => {
+    next(new BadRequestError('Некорректный запрос'));
+  });
 }
 
 
-module.exports.dislikeCard = (req, res) => {
+
+module.exports.dislikeCard = (req, res, next) => {
   Cards.findByIdAndUpdate(req.params.id, { $pull: { likes: req.user._id } }, { new: true })
   .then((card) => {
     if (!card) {
-      throw new NoteFoundError('Карточка не найдена');
+      throw new NotFoundError('Карточка не найдена');
     } else {
-      res.status(200).send(card);
+      res.status(200).send({card});
     }
   })
   .catch(next);

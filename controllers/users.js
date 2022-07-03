@@ -2,7 +2,28 @@ const Users = require('../models/user');
 const { options } = require('../routes/users');
 const BadRequestError = require('../errors/BadRequestError');
 const ValidationError = require('../errors/ValidationError');
-const NoteFoundError = require('../errors/NoteFoundError');
+const NotFoundError = require('../errors/NotFoundError');
+
+module.exports.getUser = (req, res, next) => {
+  Users.find({})
+    .then(users => res.status(200).send(users))
+    .catch(next);
+}
+
+module.exports.getUserById = (req, res, next) => {
+  Users.findById(req.params.id)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Пользователь не найден');
+      }
+      res.status(200).send({ data: user });
+    })
+    .catch(err => {
+      next(new BadRequestError('Некорректный запрос'));
+    });
+}
+
+
 
 module.exports.postUser = (req, res, next) => {
   const {name, about, avatar} = req.body;
@@ -17,22 +38,7 @@ module.exports.postUser = (req, res, next) => {
   });
 }
 
-module.exports.getUser = (req, res, next) => {
-  Users.find({})
-    .then(users => res.status(201).send(users))
-    .catch(next);
-}
 
-module.exports.getUserById = (req, res, next) => {
-  Users.findById(req.params.id)
-    .orFail(() => {
-      throw new NoteFoundError('Пользователь не найден');
-    })
-    .then((user) => {
-      res.status(200).send(user);
-    })
-    .catch(next);
-}
 
 module.exports.patchUserInfo = (req, res, next) => {
   const {name, about} = req.body;
@@ -40,7 +46,7 @@ module.exports.patchUserInfo = (req, res, next) => {
   Users.findByIdAndUpdate(req.user._id, {name, about}, {new: true, runValidators: true})
   .then((user) => {
     if (!user) {
-      throw new NoteFoundError('Пользователь не найден');
+      throw new NotFoundError('Пользователь не найден');
     } else {
       res.status(200).send({ user });
     }
@@ -60,7 +66,7 @@ module.exports.patchUserAvatar = (req, res, next) => {
   Users.findByIdAndUpdate(req.user._id, {avatar}, {new: true, runValidators: true})
   .then((user) => {
     if (!user) {
-      throw new NoteFoundError('Пользователь не найден');
+      throw new NotFoundError('Пользователь не найден');
     } else {
       res.status(200).send(user);
     }
