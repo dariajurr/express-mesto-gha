@@ -6,7 +6,7 @@ const NotFoundError = require('../errors/NotFoundError');
 
 module.exports.getUser = (req, res, next) => {
   Users.find({})
-    .then((users) => res.status(200).send(users))
+    .then((users) => res.send(users))
     .catch(next);
 };
 
@@ -20,7 +20,7 @@ module.exports.getUserById = (req, res, next) => {
       if (!user) {
         throw new NotFoundError('Пользователь не найден');
       }
-      res.status(200).send({ data: user });
+      res.send({ data: user });
     })
     .catch(next);
 };
@@ -28,10 +28,10 @@ module.exports.getUserById = (req, res, next) => {
 module.exports.postUser = (req, res, next) => {
   const { name, about, avatar } = req.body;
   Users.create({ name, about, avatar })
-    .then((user) => res.status(201).send({ data: user }))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ValidationError('Переданны некорректные данные'));
+        next(new ValidationError(`Переданны некорректные данные. ${err.message}`));
       } else {
         next(err);
       }
@@ -46,7 +46,7 @@ module.exports.patchUserInfo = (req, res, next) => {
       if (!user) {
         throw new NotFoundError('Пользователь не найден');
       } else {
-        res.status(200).send({ user });
+        res.send({ user });
       }
     })
     .catch((err) => {
@@ -66,7 +66,7 @@ module.exports.patchUserAvatar = (req, res, next) => {
       if (!user) {
         throw new NotFoundError('Пользователь не найден');
       } else {
-        res.status(200).send(user);
+        res.send(user);
       }
     })
     .catch((err) => {

@@ -15,7 +15,7 @@ module.exports.postCard = (req, res, next) => {
   const { name, link } = req.body;
 
   Cards.create({ name, link, owner })
-    .then((card) => res.status(201).send({ body: card }))
+    .then((card) => res.send({ body: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Переданны некорректные данные'));
@@ -27,7 +27,7 @@ module.exports.postCard = (req, res, next) => {
 
 module.exports.getCard = (req, res, next) => {
   Cards.find({})
-    .then((cards) => res.status(200).send({ cards }))
+    .then((cards) => res.send({ cards }))
     .catch(next);
 };
 
@@ -38,7 +38,7 @@ module.exports.deleteCard = (req, res, next) => {
       if (!card) {
         throw new NotFoundError('Карточка не найдена');
       }
-      res.status(200).send({ message: 'Карточка удалена' });
+      res.send({ message: 'Карточка удалена' });
     })
     .catch(next);
 };
@@ -50,7 +50,7 @@ module.exports.likeCard = (req, res, next) => {
       if (!card) {
         throw new NotFoundError('Карточка не найдена');
       }
-      res.status(200).send(card);
+      res.send(card);
     })
     .catch(next);
 };
@@ -62,7 +62,7 @@ module.exports.dislikeCard = (req, res, next) => {
       if (!card) {
         throw new NotFoundError('Карточка не найдена');
       } else {
-        res.status(200).send({ card });
+        res.send({ card });
       }
     })
     .catch(next);
