@@ -11,6 +11,10 @@ module.exports.getUser = (req, res, next) => {
 }
 
 module.exports.getUserById = (req, res, next) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    throw new BadRequestError('Некорректный запрос');
+  }
+
   Users.findById(req.params.id)
     .then((user) => {
       if (!user) {
@@ -18,12 +22,8 @@ module.exports.getUserById = (req, res, next) => {
       }
       res.status(200).send({ data: user });
     })
-    .catch(err => {
-      next(new BadRequestError('Некорректный запрос'));
-    });
+    .catch(next);
 }
-
-
 
 module.exports.postUser = (req, res, next) => {
   const {name, about, avatar} = req.body;
@@ -37,8 +37,6 @@ module.exports.postUser = (req, res, next) => {
     }
   });
 }
-
-
 
 module.exports.patchUserInfo = (req, res, next) => {
   const {name, about} = req.body;

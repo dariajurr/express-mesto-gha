@@ -1,7 +1,14 @@
+const mongoose = require('mongoose');
 const Cards = require('../models/card');
 const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
 const BadRequestError = require('../errors/BadRequestError');
+
+function idIsValid (id) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new BadRequestError('Некорректный запрос');
+  }
+}
 
 module.exports.postCard = (req, res, next) => {
   const owner = req.user._id;
@@ -25,6 +32,7 @@ module.exports.getCard = (req, res, next) => {
 }
 
 module.exports.deleteCard = (req, res, next) => {
+  idIsValid(req.params.id);
   Cards.findByIdAndRemove(req.params.id)
     .then((card) => {
       if (!card) {
@@ -32,12 +40,11 @@ module.exports.deleteCard = (req, res, next) => {
       }
       res.status(200).send({ message: 'Карточка удалена' });
     })
-    .catch(err => {
-      next(new BadRequestError('Некорректный запрос'));
-    });
-}
+    .catch(next);
+  }
 
 module.exports.likeCard = (req, res, next) => {
+  idIsValid(req.params.id);
   Cards.findByIdAndUpdate(req.params.id, { $addToSet: { likes: req.user._id } }, { new: true })
   .then((card) => {
     if (!card) {
@@ -45,12 +52,8 @@ module.exports.likeCard = (req, res, next) => {
     }
     res.status(200).send(card);
   })
-  .catch(err => {
-    next(new BadRequestError('Некорректный запрос'));
-  });
+  .catch(next);
 }
-
-
 
 module.exports.dislikeCard = (req, res, next) => {
   Cards.findByIdAndUpdate(req.params.id, { $pull: { likes: req.user._id } }, { new: true })
