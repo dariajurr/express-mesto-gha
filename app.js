@@ -33,7 +33,6 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
   const { statusCode = 500, message = 'На сервере произошла ошибка'} = err;
-  console.log(statusCode, message);
   res.status(statusCode).send({message});
   next();
 });

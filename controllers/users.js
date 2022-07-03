@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Users = require('../models/user');
 const { options } = require('../routes/users');
 const BadRequestError = require('../errors/BadRequestError');
