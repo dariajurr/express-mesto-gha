@@ -33,12 +33,17 @@ module.exports.getCard = (req, res, next) => {
 
 module.exports.deleteCard = (req, res, next) => {
   idIsValid(req.params.id);
-  Cards.findByIdAndRemove(req.params.id)
+  Cards.findById(req.params.id)
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка не найдена');
+      } else if (req.user._id.toString() === card.owner.toString()) {
+        Cards.deleteOne(card)
+          .then(() => res.send({ message: 'Карточка удалена' }))
+          .catch(next);
+      } else {
+        throw new ValidationError('Нет прав на удаление карточки');
       }
-      res.send({ message: 'Карточка удалена' });
     })
     .catch(next);
 };
