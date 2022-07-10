@@ -117,14 +117,15 @@ module.exports.login = (req, res, next) => {
     // eslint-disable-next-line consistent-return
     .then(([user, matched]) => {
       if (!matched) {
-        throw new AuthorizationError('Не верное имя пользователя и пароля');
+        next(new AuthorizationError('Не верное имя пользователя и пароля'));
+        return;
       }
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
       res.send({ token });
     })
     .catch((err) => {
       if (err.name === 'Unauthorized') {
-        throw new AuthorizationError('Не верное имя пользователя и пароля');
+        next(new AuthorizationError('Не верное имя пользователя и пароля'));
       } else {
         next(err);
       }
