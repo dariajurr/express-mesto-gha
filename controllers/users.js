@@ -1,9 +1,7 @@
-const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const BadRequestError = require('../errors/BadRequestError');
-const ValidationError = require('../errors/ValidationError');
 const NotFoundError = require('../errors/NotFoundError');
 const DuplicateError = require('../errors/DuplicateError');
 const AuthorizationError = require('../errors/AuthorizationError');
@@ -15,10 +13,6 @@ module.exports.getUser = (req, res, next) => {
 };
 
 module.exports.getUserById = (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    throw new BadRequestError('Некорректный запрос');
-  }
-
   User.findById(req.params.id)
     .then((user) => {
       if (!user) {
@@ -56,7 +50,8 @@ module.exports.postUser = (req, res, next) => {
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ValidationError(`Переданны некорректные данные. ${err.message}`));
+        next(new BadRequestError(`Переданны некорректные данные. ${err.message}`));
+        return;
       }
       if (err.code === 11000) {
         throw new DuplicateError('Пользователь с таким email уже зарегестрирован');
@@ -78,7 +73,7 @@ module.exports.patchUserInfo = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ValidationError('Переданны некорректные данные'));
+        next(new BadRequestError('Переданны некорректные данные'));
       } else {
         next(err);
       }
@@ -98,20 +93,20 @@ module.exports.patchUserAvatar = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ValidationError('Переданны некорректные данные'));
+        next(new BadRequestError('Переданны некорректные данные'));
       } else {
         next(err);
       }
     });
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return new AuthorizationError('Не верное имя пользователя и пароля');
+        throw new AuthorizationError('Не верное имя пользователя и пароля');
       }
 
       return Promise.all([
@@ -122,14 +117,16 @@ module.exports.login = (req, res) => {
     // eslint-disable-next-line consistent-return
     .then(([user, matched]) => {
       if (!matched) {
-        return new AuthorizationError('Не верное имя пользователя и пароля');
+        throw new AuthorizationError('Не верное имя пользователя и пароля');
       }
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
       res.send({ token });
     })
     .catch((err) => {
-      res
-        .status(401)
-        .send({ message: err.message });
+      if (err.name === 'Unauthorized') {
+        throw new AuthorizationError('Не верное имя пользователя и пароля');
+      } else {
+        next(err);
+      }
     });
 };

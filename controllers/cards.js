@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Cards = require('../models/card');
 const NotFoundError = require('../errors/NotFoundError');
-const ValidationError = require('../errors/ValidationError');
 const BadRequestError = require('../errors/BadRequestError');
 const ForbiddenError = require('../errors/ForbiddenError');
 
@@ -19,7 +18,7 @@ module.exports.postCard = (req, res, next) => {
     .then((card) => res.send({ body: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ValidationError('Переданны некорректные данные'));
+        next(new BadRequestError('Переданны некорректные данные'));
       } else {
         next(err);
       }

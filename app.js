@@ -29,8 +29,6 @@ app.post('/signup', singupValidation, postUser);
 app.use('/users', auth, userRouter);
 app.use('/cards', auth, cardRouter);
 
-app.use(errors());
-
 app.use((req, res, next) => {
   next(new NotFoundError('Страницы не существует'));
 });
@@ -40,6 +38,8 @@ app.use((err, req, res, next) => {
   res.status(statusCode).send({ message: statusCode === 500 ? 'На сервере произошла ошибка' : message });
   next();
 });
+
+app.use(errors());
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);

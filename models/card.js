@@ -13,7 +13,7 @@ const cardSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator(v) {
-        return validator.isURL(v, { protocols: ['http', 'https'], require_protocol: true });
+        return /^https?:\/\/(w{3}\.)?\S+\.\w+(\/\S+)*#?/.test(v);
       },
       message: 'Неправильный формат URL',
     },
