@@ -7,6 +7,7 @@ const cardRouter = require('./routes/cards');
 const NotFoundError = require('./errors/NotFoundError');
 const { postUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+const { singinValidation, singupValidation } = require('./middlewares/validation');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -22,8 +23,8 @@ mongoose.connect(
   },
 );
 
-app.post('/signin', login);
-app.post('/signup', postUser);
+app.post('/signin', singinValidation, login);
+app.post('/signup', singupValidation, postUser);
 
 app.use('/users', auth, userRouter);
 app.use('/cards', auth, cardRouter);

@@ -1,12 +1,13 @@
-const router = require('express').Router(); // создали роутер
+const router = require('express').Router();
 const {
   postCard, getCard, deleteCard, likeCard, dislikeCard,
-} = require('../controllers/cards'); // данные нужны для роутинга, поэтому импортируем их
+} = require('../controllers/cards');
+const { postCardValidation, cardIdValidation } = require('../middlewares/validation');
 
-router.post('/', postCard);
+router.post('/', postCardValidation, postCard);
 router.get('/', getCard);
-router.delete('/:id', deleteCard);
-router.put('/:id/likes', likeCard);
-router.delete('/:id/likes', dislikeCard);
+router.delete('/:id', cardIdValidation, deleteCard);
+router.put('/:id/likes', cardIdValidation, likeCard);
+router.delete('/:id/likes', cardIdValidation, dislikeCard);
 
-module.exports = router; // экспортировали роутер
+module.exports = router;
