@@ -3,6 +3,7 @@ const Cards = require('../models/card');
 const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
 const BadRequestError = require('../errors/BadRequestError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
 function idIsValid(id) {
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -42,7 +43,7 @@ module.exports.deleteCard = (req, res, next) => {
           .then(() => res.send({ message: 'Карточка удалена' }))
           .catch(next);
       } else {
-        throw new ValidationError('Нет прав на удаление карточки');
+        throw new ForbiddenError('Нет прав на удаление карточки');
       }
     })
     .catch(next);
