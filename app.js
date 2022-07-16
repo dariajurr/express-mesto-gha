@@ -8,6 +8,7 @@ const NotFoundError = require('./errors/NotFoundError');
 const { postUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const { singinValidation, singupValidation } = require('./middlewares/validation');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -23,11 +24,15 @@ mongoose.connect(
   },
 );
 
+app.use(requestLogger);
+
 app.post('/signin', singinValidation, login);
 app.post('/signup', singupValidation, postUser);
 
 app.use('/users', auth, userRouter);
 app.use('/cards', auth, cardRouter);
+
+app.use(errorLogger);
 
 app.use((req, res, next) => {
   next(new NotFoundError('Страницы не существует'));
